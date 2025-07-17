@@ -1,0 +1,35 @@
+﻿Step 1: Create a Docker Volume (Optional but Recommended)
+ (This ensures your models persist across container restarts.)
+docker volume create ollama-data
+
+
+step 2: Run olama container
+docker run -d --name ollama  -p 11434:11434  -v ollama-data:/root/.ollama  --pull always   ollama/ollama
+ Explanation:
+
+	-d: Detached mode
+
+	--name ollama: Name your container
+
+	-p 11434:11434: Expose port
+
+	-v ollama-data:/root/.ollama: Save models persistently
+
+	--pull always: Ensures latest version
+
+step 3: confirm it's running
+docker ps
+
+
+step 4: pull your required model
+ docker exec -it ollama ollama pull llama3
+ docker exec -it ollama ollama pull nomic-embed-text
+(Required for semantic search in your PDF. it Converts text → vectors for search & RAG )
+
+step 5: Test API Locally
+ curl http://localhost:11434/api/generate -d '{"model": "mistral", "prompt": "What is the capital of Nepal?"}'
+
+step 6: Now you can connect to http://localhost:11434
+
+
+

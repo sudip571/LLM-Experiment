@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36203.30 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLMExperiment", "LLMExperiment.csproj", "{EB17B59B-FC06-4878-A91E-A74DA369B742}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB17B59B-FC06-4878-A91E-A74DA369B742}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB17B59B-FC06-4878-A91E-A74DA369B742}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB17B59B-FC06-4878-A91E-A74DA369B742}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB17B59B-FC06-4878-A91E-A74DA369B742}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8721067D-5A30-48FF-8B8D-98162C0927F9}
+	EndGlobalSection
+EndGlobal
