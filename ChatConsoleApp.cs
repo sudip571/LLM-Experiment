@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
+using Microsoft.SemanticKernel.ChatCompletion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,96 +13,67 @@ namespace LLMExperiment
     public class ChatConsoleApp : IHostedService
     {
         private readonly IChatClient _chatClient;
-        private readonly PdfService _pdfService;
+        private readonly List<ChatMessage> _chatHistory = new();
 
-        public ChatConsoleApp(IChatClient chatClient, PdfService pdfService)
-        {
-            _chatClient = chatClient;
-            _pdfService = pdfService;
-        }
+        public ChatConsoleApp(IChatClient chatClient) => _chatClient = chatClient;
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Choose mode:");
-            Console.WriteLine("1. Chat with AI");
-            Console.WriteLine("2. Ask questions based on your PDF documents");
-            Console.Write("Enter choice (1 or 2): ");
-            var mode = Console.ReadLine()?.Trim();
-
-            if (mode == "1")
-            {
-                await StartChatAsync();
-            }
-            else if (mode == "2")
-            {
-                await StartDocumentQnAAsync();
-            }
-            else
-            {
-                Console.WriteLine("Invalid choice.");
-            }
-        }
-        private async Task StartChatAsync()
-        {
-            Console.WriteLine("\nChat mode. Type your message (empty to exit).");
-
-            var history = new List<ChatMessage>
-        {
-            new ChatMessage(ChatRole.System, "You are a helpful assistant.")
-        };
+            Console.WriteLine("Chat started (empty to exit).");
 
             while (true)
             {
-                Console.Write("You: ");
-                var input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input)) break;
+                Console.Write("\nYou: ");
+                var userInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(userInput)) break;
 
-                history.Add(new ChatMessage(ChatRole.User, input));
+                // Add user message to history
+                _chatHistory.Add(new ChatMessage(ChatRole.User, userInput));
 
-                var responseText = "";
-
-                await foreach (var update in _chatClient.GetStreamingResponseAsync(history))
+                var sb = new StringBuilder();
+                Console.Write("Gemini: ");
+                await foreach (var update in _chatClient.GetStreamingResponseAsync(_chatHistory, cancellationToken:cancellationToken))
                 {
                     Console.Write(update.Text);
-                    responseText += update.Text;
+                    sb.Append(update.Text);
                 }
-                Console.WriteLine();
 
-                history.Add(new ChatMessage(ChatRole.Assistant, responseText));
+                // Capture the assistant's full reply back into history
+                _chatHistory.Add(new ChatMessage(ChatRole.Assistant, sb.ToString()));
             }
         }
 
-        private async Task StartDocumentQnAAsync()
-        {
-            await _pdfService.IndexPdfsAsync(); // Index once at startup
-
-            while (true)
-            {
-                Console.Write("Ask a question (empty to exit): ");
-                var question = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(question)) break;
-
-                var topChunks = await _pdfService.SearchRelevantChunksAsync(question);
-
-                var context = string.Join("\n---\n", topChunks);
-
-                var history = new List<ChatMessage>
-        {
-            new ChatMessage(ChatRole.System, "Answer the question using only the provided document context."),
-            new ChatMessage(ChatRole.User, $"Context:\n{context}\n\nQuestion:\n{question}")
-        };
-
-                var responseText = "";
-
-                await foreach (var update in _chatClient.GetStreamingResponseAsync(history))
-                {
-                    Console.Write(update.Text);
-                    responseText += update.Text;
-                }
-                Console.WriteLine();
-            }
-        }
-        public Task StopAsync(System.Threading.CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
+
+
+
+    //public class ChatConsoleApp : IHostedService
+    //{
+    //    private readonly IChatClient _chatClient;
+    //    public ChatConsoleApp(IChatClient chatClient) => _chatClient = chatClient;
+
+    //    public async Task StartAsync(CancellationToken token)
+    //    {
+    //        Console.WriteLine("Chat started (empty to exit).");
+
+    //        while (true)
+    //        {
+    //            Console.Write("\nYou: ");
+    //            var input = Console.ReadLine();
+    //            if (string.IsNullOrWhiteSpace(input)) break;
+
+    //            Console.Write("Gemini: ");
+    //            await foreach (var update in _chatClient.GetStreamingResponseAsync(
+    //                       new[] { new ChatMessage(ChatRole.User, input) }, cancellationToken: token))
+    //            {
+    //                Console.Write(update.Text);
+    //            }
+    //            Console.WriteLine();
+    //        }
+    //    }
+
+    //    public Task StopAsync(CancellationToken token) => Task.CompletedTask;
+    //}
 }
 
